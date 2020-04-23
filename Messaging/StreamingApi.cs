@@ -14,8 +14,6 @@
 */
 
 using System;
-using System.Collections.Specialized;
-using System.Net;
 using Newtonsoft.Json;
 using QuantConnect.Configuration;
 using QuantConnect.Logging;
@@ -35,10 +33,10 @@ namespace QuantConnect.Messaging
         public static readonly bool IsEnabled = Config.GetBool("send-via-api");
 
         // Client for sending asynchronous requests.
-        private static readonly RestClient Client = new RestClient("http://streaming.quantconnect.com")
+        private static readonly Lazy<RestClient> Client = new Lazy<RestClient>(() => new RestClient("http://streaming.quantconnect.com")
         {
             Timeout = 300000
-        };
+        });
 
         /// <summary>
         /// Send a message to the QuantConnect Chart Streaming API.
@@ -72,7 +70,7 @@ namespace QuantConnect.Messaging
                 request.AddParameter("uid", userId);
                 request.AddParameter("token", apiToken);
                 request.AddParameter("tx", tx);
-                Client.ExecuteAsyncPost(request, (response, handle) =>
+                Client.Value.ExecuteAsyncPost(request, (response, handle) =>
                 {
                     try
                     {
